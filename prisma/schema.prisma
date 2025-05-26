@@ -1,0 +1,160 @@
+// prisma/schema.prisma
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Enum для категорий компонентов
+enum ComponentCategory {
+  CPU
+  GPU
+  MOTHERBOARD
+  RAM
+  STORAGE
+  PSU
+  CASE
+  COOLING
+  PERIPHERALS
+}
+
+// Enum для ролей пользователей
+enum UserRole {
+  USER
+  ADMIN
+  MODERATOR
+}
+
+// Модель пользователя
+model User {
+  id          String   @id @default(uuid())
+  email       String   @unique
+  username    String   @unique
+  password    String
+  firstName   String?
+  lastName    String?
+  role        UserRole @default(USER)
+  isVerified  Boolean  @default(false)
+  avatar      String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Связи
+  reviews       Review[]
+  builds        Build[]
+  wishlistItems WishlistItem[]
+  refreshTokens RefreshToken[]
+
+  @@map("users")
+}
+
+// Модель компонента
+model Component {
+  id          String            @id @default(uuid())
+  name        String
+  brand       String
+  model       String
+  category    ComponentCategory
+  price       Float
+  currency    String            @default("KZT")
+  specs       Json              @default("{}")
+  images      String[]          @default([])
+  description String?
+  features    String[]          @default([])
+  inStock     Boolean           @default(true)
+  popularity  Int               @default(0)
+  rating      Float             @default(0.0)
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+
+  // Связи
+  reviews         Review[]
+  buildComponents BuildComponent[]
+  wishlistItems   WishlistItem[]
+
+  @@map("components")
+}
+
+// Модель отзыва
+model Review {
+  id          String   @id @default(uuid())
+  rating      Int      @db.SmallInt
+  title       String?
+  content     String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Связи
+  userId      String
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  componentId String
+  component   Component @relation(fields: [componentId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, componentId])
+  @@map("reviews")
+}
+
+// Модель сборки
+model Build {
+  id          String   @id @default(uuid())
+  name        String
+  description String?
+  totalPrice  Float    @default(0)
+  isPublic    Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Связи
+  userId     String
+  user       User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  components BuildComponent[]
+
+  @@map("builds")
+}
+
+// Связь сборки с компонентами
+model BuildComponent {
+  id       String @id @default(uuid())
+  quantity Int    @default(1)
+
+  // Связи
+  buildId     String
+  build       Build     @relation(fields: [buildId], references: [id], onDelete: Cascade)
+  componentId String
+  component   Component @relation(fields: [componentId], references: [id], onDelete: Cascade)
+
+  @@unique([buildId, componentId])
+  @@map("build_components")
+}
+
+// Wishlist
+model WishlistItem {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+
+  // Связи
+  userId      String
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  componentId String
+  component   Component @relation(fields: [componentId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, componentId])
+  @@map("wishlist_items")
+}
+
+// Refresh токены
+model RefreshToken {
+  id        String   @id @default(uuid())
+  token     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  // Связи
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("refresh_tokens")
+}

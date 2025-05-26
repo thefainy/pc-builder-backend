@@ -1,0 +1,124 @@
+### Health Check
+GET http://localhost:3000/health
+
+### API Test
+GET http://localhost:3000/api/test
+
+### Database Test
+GET http://localhost:3000/api/db-test
+
+### =========================
+### AUTHENTICATION TESTS
+### =========================
+
+### Login User (для получения токена)
+POST http://localhost:3000/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "user@pcbuilder.com",
+  "password": "password123"
+}
+
+### Login Admin (для админ операций)
+POST http://localhost:3000/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "admin@pcbuilder.com",
+  "password": "password123"
+}
+
+### =========================
+### COMPONENTS API TESTS
+### =========================
+
+### Get All Components (public)
+GET http://localhost:3000/api/components
+
+### Get Components with Search
+GET http://localhost:3000/api/components?search=Intel&category=CPU&sortBy=price&sortOrder=asc
+
+### Get Components with Pagination
+GET http://localhost:3000/api/components?page=1&limit=5
+
+### Get Components by Category
+GET http://localhost:3000/api/components/category/CPU
+
+### Get Popular Components
+GET http://localhost:3000/api/components/popular?limit=5
+
+### Get Component by ID
+GET http://localhost:3000/api/components/cpu-1
+
+### Get Components Stats (Admin only)
+GET http://localhost:3000/api/components/stats
+Authorization: Bearer YOUR_ADMIN_TOKEN_HERE
+
+### Create Component (Admin only)
+POST http://localhost:3000/api/components
+Authorization: Bearer YOUR_ADMIN_TOKEN_HERE
+Content-Type: application/json
+
+{
+  "name": "Intel Core i9-14900K",
+  "brand": "Intel",
+  "model": "Core i9-14900K",
+  "category": "CPU",
+  "price": 250000,
+  "currency": "KZT",
+  "specs": {
+    "cores": "24",
+    "threads": "32",
+    "frequency": "3.2 GHz",
+    "boost": "6.0 GHz",
+    "cache": "36 MB",
+    "tdp": "125 W",
+    "socket": "LGA1700",
+    "power": "125"
+  },
+  "images": [
+    "https://images.unsplash.com/photo-1555617981-dac3880eac6e?w=400"
+  ],
+  "description": "Топовый процессор Intel для экстремальных задач",
+  "features": [
+    "24 ядра",
+    "32 потока", 
+    "Частота до 6.0 ГГц",
+    "Разблокированный множитель",
+    "Поддержка DDR5"
+  ],
+  "inStock": true
+}
+
+### Update Component (Admin only)
+PUT http://localhost:3000/api/components/cpu-1
+Authorization: Bearer YOUR_ADMIN_TOKEN_HERE
+Content-Type: application/json
+
+{
+  "price": 190000,
+  "description": "Обновленное описание процессора"
+}
+
+### Delete Component (Admin only)
+DELETE http://localhost:3000/api/components/cpu-1
+Authorization: Bearer YOUR_ADMIN_TOKEN_HERE
+
+### =========================
+### ERROR TESTS
+### =========================
+
+### Get Non-existent Component
+GET http://localhost:3000/api/components/non-existent-id
+
+### Create Component without Auth
+POST http://localhost:3000/api/components
+Content-Type: application/json
+
+{
+  "name": "Test Component",
+  "brand": "Test Brand",
+  "category": "CPU",
+  "price": 10000
+}
