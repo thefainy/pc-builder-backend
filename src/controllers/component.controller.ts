@@ -6,10 +6,10 @@ const prisma = new PrismaClient();
 
 export const componentController = {
   // Get all components with optional filtering
-  async getAllComponents(req: Request, res: Response) {
+  async getAllComponents(req: Request, res: Response): Promise<Response> {
     try {
       const { category, brand, inStock, minPrice, maxPrice } = req.query;
-      
+
       const where: any = {
         ...(category && { category: category as string }),
         ...(brand && { brand: brand as string }),
@@ -24,57 +24,40 @@ export const componentController = {
 
       const components = await prisma.component.findMany({
         where,
-        include: {
-          cpu: true,
-          gpu: true,
-          motherboard: true,
-          ram: true,
-          storage: true,
-          psu: true,
-          pcCase: true,
-          cooling: true,
-        },
+        // Убираем include с несуществующими полями
+        // Используем только основные поля компонента
       });
 
-      res.json(components);
+      return res.json(components);
     } catch (error) {
-      res.status(500).json({ error: 'Failed to fetch components' });
+      return res.status(500).json({ error: 'Failed to fetch components' });
     }
   },
 
   // Get component by ID
-  async getComponentById(req: Request, res: Response) {
+  async getComponentById(req: Request, res: Response): Promise<Response> {
     try {
       const { id } = req.params;
       const component = await prisma.component.findUnique({
         where: { id },
-        include: {
-          cpu: true,
-          gpu: true,
-          motherboard: true,
-          ram: true,
-          storage: true,
-          psu: true,
-          pcCase: true,
-          cooling: true,
-        },
+        // Убираем include с несуществующими полями
       });
 
       if (!component) {
         return res.status(404).json({ error: 'Component not found' });
       }
 
-      res.json(component);
+      return res.json(component);
     } catch (error) {
-      res.status(500).json({ error: 'Failed to fetch component' });
+      return res.status(500).json({ error: 'Failed to fetch component' });
     }
   },
 
   // Create new component
-  async createComponent(req: Request, res: Response) {
+  async createComponent(req: Request, res: Response): Promise<Response> {
     try {
       const componentData: ComponentWithSpecs = req.body;
-      
+
       const component = await prisma.component.create({
         data: {
           name: componentData.name,
@@ -82,44 +65,27 @@ export const componentController = {
           model: componentData.model,
           category: componentData.category,
           price: componentData.price,
-          currency: componentData.currency,
+          currency: componentData.currency || 'KZT',
           description: componentData.description,
-          inStock: componentData.inStock,
-          popularity: componentData.popularity,
-          images: componentData.images,
-          ...(componentData.category === 'CPU' && {
-            cpu: {
-              create: (componentData as any).cpu,
-            },
-          }),
-          ...(componentData.category === 'GPU' && {
-            gpu: {
-              create: (componentData as any).gpu,
-            },
-          }),
-          // Add similar conditions for other component types
+          inStock: componentData.inStock ?? true,
+          popularity: componentData.popularity || 0,
+          images: componentData.images || [],
+          specs: componentData.specs || {},
+          features: componentData.features || [],
+          rating: componentData.rating || 0,
         },
-        include: {
-          cpu: true,
-          gpu: true,
-          motherboard: true,
-          ram: true,
-          storage: true,
-          psu: true,
-          pcCase: true,
-          cooling: true,
-        },
+        // Убираем include с несуществующими полями
       });
 
-      res.status(201).json(component);
+      return res.status(201).json(component);
     } catch (error) {
       console.error('Error creating component:', error);
-      res.status(500).json({ error: 'Failed to create component' });
+      return res.status(500).json({ error: 'Failed to create component' });
     }
   },
 
   // Update component
-  async updateComponent(req: Request, res: Response) {
+  async updateComponent(req: Request, res: Response): Promise<Response> {
     try {
       const { id } = req.params;
       const componentData: Partial<ComponentWithSpecs> = req.body;
@@ -134,36 +100,30 @@ export const componentController = {
           ...(componentData.description && { description: componentData.description }),
           ...(componentData.inStock !== undefined && { inStock: componentData.inStock }),
           ...(componentData.images && { images: componentData.images }),
+          ...(componentData.specs && { specs: componentData.specs }),
+          ...(componentData.features && { features: componentData.features }),
+          updatedAt: new Date(),
         },
-        include: {
-          cpu: true,
-          gpu: true,
-          motherboard: true,
-          ram: true,
-          storage: true,
-          psu: true,
-          pcCase: true,
-          cooling: true,
-        },
+        // Убираем include с несуществующими полями
       });
 
-      res.json(component);
+      return res.json(component);
     } catch (error) {
-      res.status(500).json({ error: 'Failed to update component' });
+      return res.status(500).json({ error: 'Failed to update component' });
     }
   },
 
   // Delete component
-  async deleteComponent(req: Request, res: Response) {
+  async deleteComponent(req: Request, res: Response): Promise<Response> {
     try {
       const { id } = req.params;
       await prisma.component.delete({
         where: { id },
       });
 
-      res.status(204).send();
+      return res.status(204).send();
     } catch (error) {
-      res.status(500).json({ error: 'Failed to delete component' });
+      return res.status(500).json({ error: 'Failed to delete component' });
     }
   },
-}; 
+};

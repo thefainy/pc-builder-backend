@@ -1,7 +1,40 @@
 // src/types/component.types.ts
-// @ts-ignore
-import { ComponentCategory } from '@prisma/client';
 
+// Enum для категорий компонентов
+export enum ComponentCategory {
+  CPU = 'CPU',
+  GPU = 'GPU',
+  MOTHERBOARD = 'MOTHERBOARD',
+  RAM = 'RAM',
+  STORAGE = 'STORAGE',
+  PSU = 'PSU',
+  CASE = 'CASE',
+  COOLING = 'COOLING',
+  PERIPHERALS = 'PERIPHERALS'
+}
+
+// Базовый интерфейс компонента
+export interface ComponentResponse {
+  id: string;
+  name: string;
+  brand: string;
+  model: string;
+  category: ComponentCategory;
+  price: number;
+  currency: string;
+  specs: Record<string, any>;
+  images: string[];
+  description?: string;
+  features: string[];
+  inStock: boolean;
+  popularity: number;
+  rating: number;
+  reviewCount?: number;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+// Интерфейс для создания компонента
 export interface CreateComponentRequest {
   name: string;
   brand: string;
@@ -9,15 +42,29 @@ export interface CreateComponentRequest {
   category: ComponentCategory;
   price: number;
   currency?: string;
-  specs: Record<string, any>;
+  specs?: Record<string, any>;
   images?: string[];
   description?: string;
   features?: string[];
   inStock?: boolean;
 }
 
-export interface UpdateComponentRequest extends Partial<CreateComponentRequest> { }
+// Интерфейс для обновления компонента
+export interface UpdateComponentRequest {
+  name?: string;
+  brand?: string;
+  model?: string;
+  category?: ComponentCategory;
+  price?: number;
+  currency?: string;
+  specs?: Record<string, any>;
+  images?: string[];
+  description?: string;
+  features?: string[];
+  inStock?: boolean;
+}
 
+// Интерфейс для поиска компонентов
 export interface ComponentSearchQuery {
   search?: string;
   category?: ComponentCategory;
@@ -31,25 +78,7 @@ export interface ComponentSearchQuery {
   limit?: number;
 }
 
-export interface ComponentResponse {
-  id: string;
-  name: string;
-  brand: string;
-  model: string;
-  category: ComponentCategory;
-  price: number;
-  currency: string;
-  specs: Record<string, any>;
-  images: string[];
-  description?: string | null;
-  features: string[];
-  inStock: boolean;
-  popularity: number;
-  rating: number;
-  createdAt: Date;
-  updatedAt: Date;
-}
-
+// Ответ со списком компонентов
 export interface ComponentsListResponse {
   components: ComponentResponse[];
   total: number;
@@ -60,25 +89,31 @@ export interface ComponentsListResponse {
   hasPrev: boolean;
 }
 
-// Экспортируем для совместимости с frontend
-export { ComponentCategory };
+// Компонент с характеристиками (для обратной совместимости)
+export interface ComponentWithSpecs extends ComponentResponse {
+  // Дополнительные поля для специфических характеристик
+  cpu?: any;
+  gpu?: any;
+  motherboard?: any;
+  ram?: any;
+  storage?: any;
+  psu?: any;
+  pcCase?: any;
+  cooling?: any;
+}
 
-// Prisma типы для внутреннего использования
-export type PrismaComponent = {
-  id: string;
-  name: string;
-  brand: string;
-  model: string;
-  category: ComponentCategory;
-  price: number;
-  currency: string;
-  specs: any; // Json type from Prisma
-  images: string[];
-  description: string | null;
-  features: string[];
-  inStock: boolean;
-  popularity: number;
-  rating: number;
-  createdAt: Date;
-  updatedAt: Date;
-};
+// Статистика компонентов
+export interface ComponentsStats {
+  total: number;
+  inStock: number;
+  outOfStock: number;
+  categories: Array<{
+    category: string;
+    count: number;
+  }>;
+  priceRange: {
+    min: number;
+    max: number;
+    average: number;
+  };
+}

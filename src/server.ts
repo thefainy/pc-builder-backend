@@ -3,6 +3,7 @@ import dotenv from 'dotenv';
 import express, { Request, Response } from 'express';
 import authRoutes from './auth/auth.routes';
 import componentsRoutes from './components/components.routes';
+import buildsRoutes from './builds/builds.routes'; // Новый импорт
 import prisma, { testConnection } from './config/database';
 
 // Load environment variables
@@ -44,12 +45,14 @@ app.get('/api/db-test', async (req: Request, res: Response) => {
   try {
     const userCount = await prisma.user.count();
     const componentCount = await prisma.component.count();
+    const buildCount = await prisma.build.count(); // Добавляем счетчик сборок
 
     res.json({
       message: '✅ Database connection successful!',
       data: {
         users: userCount,
-        components: componentCount
+        components: componentCount,
+        builds: buildCount // Новое поле
       }
     });
   } catch (error) {
@@ -61,11 +64,10 @@ app.get('/api/db-test', async (req: Request, res: Response) => {
   }
 });
 
-// Auth routes
+// Routes
 app.use('/api/auth', authRoutes);
-
-// Components routes
 app.use('/api/components', componentsRoutes);
+app.use('/api/builds', buildsRoutes); // Новый роут
 
 // Global error handler
 app.use((error: any, req: Request, res: Response, next: any) => {
